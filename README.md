@@ -15,7 +15,7 @@ It simulates the experience of a code editor, with syntax highlighting and inden
 
 ## 🛠 How to Use
 
-1. Open the `typing_practice_tool_ignore_comments.html` file in your browser.
+1. Open the `typing_practice_tool.html` file in your browser.
 2. Paste your code into the textarea.
 3. Select the language for syntax highlighting.
 4. (Optional) Check **Ignore comment lines** if you want to skip typing comments.
@@ -29,7 +29,7 @@ Many typing tools focus on plain text. This project focuses on improving muscle 
 
 ## 📁 File
 
-- `typing_practice_tool_ignore_comments.html` – Full self-contained tool with embedded JS/CSS and syntax highlighter.
+- `typing_practice_tool.html` – Full self-contained tool with embedded JS/CSS and syntax highlighter.
 
 ## 📜 License
 
