@@ -1,0 +1,747 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Code Typing Practice</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism-tomorrow.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-core.min.js"></script>
+    <script
+        src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/plugins/autoloader/prism-autoloader.min.js"></script>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: 'SF Mono', Monaco, 'Cascadia Code', 'Roboto Mono', Consolas, 'Courier New', monospace;
+            background: #0d1117;
+            color: #c9d1d9;
+            line-height: 1.6;
+            min-height: 100vh;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .header h1 {
+            color: #58a6ff;
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+        }
+
+        .header p {
+            color: #8b949e;
+            font-size: 1.1rem;
+        }
+
+        .setup-section {
+            background: #161b22;
+            border: 1px solid #30363d;
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+
+        .setup-section h2 {
+            color: #f0f6fc;
+            margin-bottom: 15px;
+            font-size: 1.3rem;
+        }
+
+        .form-group {
+            margin-bottom: 15px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 5px;
+            color: #f0f6fc;
+            font-weight: 500;
+        }
+
+        textarea,
+        select,
+        input {
+            width: 100%;
+            padding: 12px;
+            background: #0d1117;
+            border: 1px solid #30363d;
+            border-radius: 6px;
+            color: #c9d1d9;
+            font-family: inherit;
+            font-size: 14px;
+            resize: vertical;
+        }
+
+        textarea {
+            min-height: 200px;
+            line-height: 1.5;
+        }
+
+        textarea:focus,
+        select:focus,
+        input:focus {
+            outline: none;
+            border-color: #58a6ff;
+            box-shadow: 0 0 0 3px rgba(88, 166, 255, 0.1);
+        }
+
+        .controls {
+            display: flex;
+            gap: 15px;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+
+        button {
+            background: #238636;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-family: inherit;
+            font-size: 14px;
+            font-weight: 500;
+            transition: all 0.2s;
+        }
+
+        button:hover {
+            background: #2ea043;
+        }
+
+        button:disabled {
+            background: #484f58;
+            cursor: not-allowed;
+        }
+
+        .start-btn {
+            background: #1f6feb;
+        }
+
+        .start-btn:hover {
+            background: #388bfd;
+        }
+
+        .stop-btn {
+            background: #da3633;
+        }
+
+        .stop-btn:hover {
+            background: #e5484d;
+        }
+
+        .stats {
+            display: flex;
+            gap: 20px;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+
+        .stat {
+            background: #21262d;
+            padding: 8px 12px;
+            border-radius: 6px;
+            font-size: 14px;
+            font-weight: 500;
+        }
+
+        .stat.progress {
+            color: #58a6ff;
+        }
+
+        .stat.wpm {
+            color: #56d364;
+        }
+
+        .stat.errors {
+            color: #f85149;
+        }
+
+        .stat.accuracy {
+            color: #a5a5a5;
+        }
+
+        .practice-section {
+            background: #161b22;
+            border: 1px solid #30363d;
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 20px;
+            display: none;
+        }
+
+        .practice-section.active {
+            display: block;
+        }
+
+        .code-display {
+            background: #0d1117;
+            border: 1px solid #30363d;
+            border-radius: 6px;
+            padding: 20px;
+            font-size: 16px;
+            line-height: 1.6;
+            position: relative;
+            overflow: auto;
+            max-height: 400px;
+            white-space: pre-wrap;
+            word-wrap: break-word;
+        }
+
+        .char {
+            position: relative;
+        }
+
+        .char.current {
+            background: #1f6feb;
+            color: white;
+            border-radius: 2px;
+            animation: pulse 1s infinite;
+        }
+
+        .char.correct {
+            background: rgba(86, 211, 100, 0.2);
+            color: #56d364;
+        }
+
+        .char.incorrect {
+            background: rgba(248, 81, 73, 0.2);
+            color: #f85149;
+        }
+
+        @keyframes pulse {
+
+            0%,
+            50% {
+                opacity: 1;
+            }
+
+            51%,
+            100% {
+                opacity: 0.5;
+            }
+        }
+
+        .typing-input {
+            position: absolute;
+            left: -9999px;
+            opacity: 0;
+        }
+
+        .instructions {
+            background: #0d1117;
+            border: 1px solid #30363d;
+            border-radius: 6px;
+            padding: 15px;
+            margin-bottom: 20px;
+            color: #8b949e;
+        }
+
+        .instructions h3 {
+            color: #f0f6fc;
+            margin-bottom: 10px;
+        }
+
+        .sample-code {
+            background: #0d1117;
+            border: 1px solid #30363d;
+            border-radius: 6px;
+            padding: 15px;
+            margin-top: 10px;
+            font-size: 12px;
+            color: #8b949e;
+        }
+
+        .results {
+            background: #0f1419;
+            border: 1px solid #30363d;
+            border-radius: 8px;
+            padding: 20px;
+            margin-top: 20px;
+            text-align: center;
+            display: none;
+        }
+
+        .results.show {
+            display: block;
+        }
+
+        .results h2 {
+            color: #56d364;
+            margin-bottom: 15px;
+        }
+
+        .results-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-top: 20px;
+        }
+
+        .result-card {
+            background: #21262d;
+            padding: 15px;
+            border-radius: 6px;
+        }
+
+        .result-card h3 {
+            color: #f0f6fc;
+            margin-bottom: 5px;
+        }
+
+        .result-card .value {
+            font-size: 1.5rem;
+            font-weight: bold;
+        }
+
+        .result-card.wpm .value {
+            color: #56d364;
+        }
+
+        .result-card.accuracy .value {
+            color: #58a6ff;
+        }
+
+        .result-card.errors .value {
+            color: #f85149;
+        }
+
+        .result-card.time .value {
+            color: #a5a5a5;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <header class="header">
+            <h1>⌨️ Code Typing Practice</h1>
+            <p>Improve your coding speed and accuracy with syntax-highlighted practice</p>
+        </header>
+
+        <div class="setup-section">
+            <h2>📝 Setup Your Practice</h2>
+
+            <div class="form-group">
+                <label for="codeInput">Paste your code here:</label>
+                <textarea id="codeInput"
+                    placeholder="Paste your Ruby, JavaScript, Python, or any code here..."></textarea>
+                <div class="sample-code">
+                    <strong>Sample Ruby code to try:</strong><br>
+                    class User<br>
+                    &nbsp;&nbsp;def initialize(name, email)<br>
+                    &nbsp;&nbsp;&nbsp;&nbsp;@name = name<br>
+                    &nbsp;&nbsp;&nbsp;&nbsp;@email = email<br>
+                    &nbsp;&nbsp;end<br><br>
+                    &nbsp;&nbsp;def greet<br>
+                    &nbsp;&nbsp;&nbsp;&nbsp;puts "Hello, #{@name}!"<br>
+                    &nbsp;&nbsp;end<br>
+                    end
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label for="languageSelect">Language (for syntax highlighting):</label>
+                <select id="languageSelect">
+                    <option value="ruby">Ruby</option>
+                    <option value="javascript">JavaScript</option>
+                    <option value="python">Python</option>
+                    <option value="java">Java</option>
+                    <option value="cpp">C++</option>
+                    <option value="css">CSS</option>
+                    <option value="html">HTML</option>
+                    <option value="php">PHP</option>
+                    <option value="go">Go</option>
+                    <option value="rust">Rust</option>
+                    <option value="typescript">TypeScript</option>
+                    <option value="sql">SQL</option>
+                </select>
+            </div>
+
+            <div class="controls">
+                <button id="startBtn" class="start-btn">🚀 Start Practice</button>
+                <button id="stopBtn" class="stop-btn" disabled>⏹️ Stop</button>
+                <button id="resetBtn" disabled>🔄 Reset</button>
+
+                <div class="stats">
+                    <div class="stat progress">
+                        <span id="progressText">0/0</span>
+                    </div>
+                    <div class="stat wpm">
+                        <span id="wpmText">0 WPM</span>
+                    </div>
+                    <div class="stat errors">
+                        <span id="errorsText">0 errors</span>
+                    </div>
+                    <div class="stat accuracy">
+                        <span id="accuracyText">100%</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="practice-section" id="practiceSection">
+            <div class="instructions">
+                <h3>📋 Instructions</h3>
+                <p>Type the characters exactly as shown. Use Tab for indentation. Press Escape to stop.</p>
+            </div>
+
+            <div class="code-display" id="codeDisplay"></div>
+            <input type="text" id="typingInput" class="typing-input" autocomplete="off" spellcheck="false">
+        </div>
+
+        <div class="results" id="results">
+            <h2>🎉 Practice Complete!</h2>
+            <div class="results-grid">
+                <div class="result-card wpm">
+                    <h3>Words Per Minute</h3>
+                    <div class="value" id="finalWpm">0</div>
+                </div>
+                <div class="result-card accuracy">
+                    <h3>Accuracy</h3>
+                    <div class="value" id="finalAccuracy">100%</div>
+                </div>
+                <div class="result-card errors">
+                    <h3>Total Errors</h3>
+                    <div class="value" id="finalErrors">0</div>
+                </div>
+                <div class="result-card time">
+                    <h3>Time</h3>
+                    <div class="value" id="finalTime">0:00</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        class TypingPractice {
+            constructor() {
+                this.currentIndex = 0;
+                this.errors = 0;
+                this.isActive = false;
+                this.startTime = null;
+                this.codeText = '';
+                this.language = 'ruby';
+
+                this.initializeElements();
+                this.setupEventListeners();
+            }
+
+            initializeElements() {
+                this.codeInput = document.getElementById('codeInput');
+                this.languageSelect = document.getElementById('languageSelect');
+                this.startBtn = document.getElementById('startBtn');
+                this.stopBtn = document.getElementById('stopBtn');
+                this.resetBtn = document.getElementById('resetBtn');
+                this.practiceSection = document.getElementById('practiceSection');
+                this.codeDisplay = document.getElementById('codeDisplay');
+                this.typingInput = document.getElementById('typingInput');
+                this.results = document.getElementById('results');
+
+                // Stats elements
+                this.progressText = document.getElementById('progressText');
+                this.wpmText = document.getElementById('wpmText');
+                this.errorsText = document.getElementById('errorsText');
+                this.accuracyText = document.getElementById('accuracyText');
+
+                // Results elements
+                this.finalWpm = document.getElementById('finalWpm');
+                this.finalAccuracy = document.getElementById('finalAccuracy');
+                this.finalErrors = document.getElementById('finalErrors');
+                this.finalTime = document.getElementById('finalTime');
+            }
+
+            setupEventListeners() {
+                this.startBtn.addEventListener('click', () => this.startPractice());
+                this.stopBtn.addEventListener('click', () => this.stopPractice());
+                this.resetBtn.addEventListener('click', () => this.resetPractice());
+
+                this.typingInput.addEventListener('input', (e) => this.handleInput(e));
+                this.typingInput.addEventListener('keydown', (e) => this.handleKeyDown(e));
+
+                document.addEventListener('keydown', (e) => {
+                    if (e.key === 'Escape' && this.isActive) {
+                        this.stopPractice();
+                    }
+                });
+
+                // Keep focus on typing input when practice is active
+                document.addEventListener('click', () => {
+                    if (this.isActive) {
+                        setTimeout(() => this.typingInput.focus(), 10);
+                    }
+                });
+            }
+
+            startPractice() {
+                const code = this.codeInput.value.trim();
+                if (!code) {
+                    alert('Please paste some code to practice with!');
+                    return;
+                }
+
+                this.codeText = code;
+                this.language = this.languageSelect.value;
+                this.currentIndex = 0;
+                this.errors = 0;
+                this.isActive = true;
+                this.startTime = Date.now();
+
+                this.renderCode();
+                this.practiceSection.classList.add('active');
+                this.results.classList.remove('show');
+
+                this.startBtn.disabled = true;
+                this.stopBtn.disabled = false;
+                this.resetBtn.disabled = false;
+
+                this.typingInput.focus();
+                this.updateStats();
+
+                console.log('🚀 Practice started!');
+            }
+
+            stopPractice() {
+                this.isActive = false;
+                this.startBtn.disabled = false;
+                this.stopBtn.disabled = true;
+
+                if (this.currentIndex > 0) {
+                    this.showResults();
+                }
+
+                console.log('⏹️ Practice stopped');
+            }
+
+            resetPractice() {
+                this.isActive = false;
+                this.currentIndex = 0;
+                this.errors = 0;
+                this.startTime = null;
+
+                this.practiceSection.classList.remove('active');
+                this.results.classList.remove('show');
+
+                this.startBtn.disabled = false;
+                this.stopBtn.disabled = true;
+                this.resetBtn.disabled = true;
+
+                this.updateStats();
+                console.log('🔄 Practice reset');
+            }
+
+            renderCode() {
+                const chars = this.codeText.split('');
+                this.codeDisplay.innerHTML = chars.map((char, index) => {
+                    let className = 'char';
+                    if (index === this.currentIndex) {
+                        className += ' current';
+                    } else if (index < this.currentIndex) {
+                        className += ' correct';
+                    }
+
+                    const displayChar = char === ' ' ? '&nbsp;' :
+                        char === '\n' ? '<br>' :
+                            char === '\t' ? '&nbsp;&nbsp;&nbsp;&nbsp;' :
+                                this.escapeHtml(char);
+
+                    return `<span class="${className}" data-index="${index}">${displayChar}</span>`;
+                }).join('');
+
+                // Scroll current character into view
+                const currentChar = this.codeDisplay.querySelector('.current');
+                if (currentChar) {
+                    currentChar.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                }
+            }
+
+            handleInput(e) {
+                if (!this.isActive) return;
+
+                const inputChar = e.target.value.slice(-1);
+                const expectedChar = this.codeText[this.currentIndex];
+
+                if (inputChar === expectedChar) {
+                    this.currentIndex++;
+                    this.updateCharacterDisplay();
+                    this.updateStats();
+
+                    if (this.currentIndex >= this.codeText.length) {
+                        this.completePractice();
+                    }
+                } else {
+                    this.errors++;
+                    this.markError();
+                    this.updateStats();
+                }
+
+                // Clear input
+                e.target.value = '';
+            }
+
+
+            handleKeyDown(e) {
+                if (!this.isActive) return;
+
+                if (e.key === 'Enter') {
+                    e.preventDefault();
+                    const expectedChar = this.codeText[this.currentIndex];
+                    if (expectedChar === '\n') {
+                        this.currentIndex++;
+
+                        // Detectar indentación esperada después del Enter
+                        let indentation = '';
+                        while (
+                            this.codeText[this.currentIndex] === ' ' ||
+                            this.codeText[this.currentIndex] === '\t'
+                        ) {
+                            indentation += this.codeText[this.currentIndex];
+                            this.currentIndex++;
+                        }
+
+                        // Simular haber "tecleado" la indentación
+                        for (let i = 0; i < indentation.length; i++) {
+                            this.updateCharacterDisplay();
+                        }
+
+                        this.updateCharacterDisplay();
+                        this.updateStats();
+
+                        if (this.currentIndex >= this.codeText.length) {
+                            this.completePractice();
+                        }
+                    } else {
+                        this.errors++;
+                        this.markError();
+                        this.updateStats();
+                    }
+                } else if (e.key === 'Tab') {
+                    // (Ya manejado correctamente)
+                    e.preventDefault();
+                    const expectedChar = this.codeText[this.currentIndex];
+                    if (expectedChar === '\t') {
+                        this.currentIndex++;
+                        this.updateCharacterDisplay();
+                        this.updateStats();
+                        if (this.currentIndex >= this.codeText.length) {
+                            this.completePractice();
+                        }
+                    } else {
+                        this.errors++;
+                        this.markError();
+                        this.updateStats();
+                    }
+                }
+            }
+
+
+
+            updateCharacterDisplay() {
+                const chars = this.codeDisplay.querySelectorAll('.char');
+
+                // Update previous character
+                if (this.currentIndex > 0) {
+                    const prevChar = chars[this.currentIndex - 1];
+                    if (prevChar) {
+                        prevChar.className = 'char correct';
+                    }
+                }
+
+                // Update current character
+                if (this.currentIndex < chars.length) {
+                    const currentChar = chars[this.currentIndex];
+                    if (currentChar) {
+                        currentChar.className = 'char current';
+                        currentChar.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                    }
+                }
+            }
+
+            markError() {
+                // Flash error indication
+                this.codeDisplay.style.boxShadow = '0 0 10px rgba(248, 81, 73, 0.5)';
+                setTimeout(() => {
+                    this.codeDisplay.style.boxShadow = '';
+                }, 200);
+            }
+
+            updateStats() {
+                const progress = `${this.currentIndex}/${this.codeText.length}`;
+                this.progressText.textContent = progress;
+
+                const errors = `${this.errors} errors`;
+                this.errorsText.textContent = errors;
+
+                let wpm = 0;
+                let accuracy = 100;
+
+                if (this.startTime && this.currentIndex > 0) {
+                    const timeElapsed = (Date.now() - this.startTime) / 1000 / 60; // minutes
+                    const wordsTyped = this.currentIndex / 5; // standard: 5 chars = 1 word
+                    wpm = Math.round(wordsTyped / timeElapsed);
+
+                    accuracy = Math.round(((this.currentIndex - this.errors) / this.currentIndex) * 100);
+                    if (this.errors === 0) accuracy = 100;
+                }
+
+                this.wpmText.textContent = `${wpm} WPM`;
+                this.accuracyText.textContent = `${accuracy}%`;
+            }
+
+            completePractice() {
+                this.isActive = false;
+                this.showResults();
+                console.log('🎉 Practice completed!');
+            }
+
+            showResults() {
+                const totalTime = this.startTime ? (Date.now() - this.startTime) / 1000 : 0;
+                const minutes = Math.floor(totalTime / 60);
+                const seconds = Math.floor(totalTime % 60);
+                const timeString = `${minutes}:${seconds.toString().padStart(2, '0')}`;
+
+                const wpm = this.startTime && this.currentIndex > 0 ?
+                    Math.round((this.currentIndex / 5) / (totalTime / 60)) : 0;
+
+                const accuracy = this.currentIndex > 0 ?
+                    Math.round(((this.currentIndex - this.errors) / this.currentIndex) * 100) : 100;
+
+                this.finalWpm.textContent = wpm;
+                this.finalAccuracy.textContent = `${accuracy}%`;
+                this.finalErrors.textContent = this.errors;
+                this.finalTime.textContent = timeString;
+
+                this.results.classList.add('show');
+                this.startBtn.disabled = false;
+                this.stopBtn.disabled = true;
+            }
+
+            escapeHtml(text) {
+                const div = document.createElement('div');
+                div.textContent = text;
+                return div.innerHTML;
+            }
+        }
+
+        // Initialize the typing practice
+        document.addEventListener('DOMContentLoaded', () => {
+            new TypingPractice();
+        });
+    </script>
+</body>
+
+</html>
