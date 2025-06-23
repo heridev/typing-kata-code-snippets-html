@@ -340,18 +340,6 @@
                 <label for="codeInput">Paste your code here:</label>
                 <textarea id="codeInput"
                     placeholder="Paste your Ruby, JavaScript, Python, or any code here..."></textarea>
-                <div class="sample-code">
-                    <strong>Sample Ruby code to try:</strong><br>
-                    class User<br>
-                    &nbsp;&nbsp;def initialize(name, email)<br>
-                    &nbsp;&nbsp;&nbsp;&nbsp;@name = name<br>
-                    &nbsp;&nbsp;&nbsp;&nbsp;@email = email<br>
-                    &nbsp;&nbsp;end<br><br>
-                    &nbsp;&nbsp;def greet<br>
-                    &nbsp;&nbsp;&nbsp;&nbsp;puts "Hello, #{@name}!"<br>
-                    &nbsp;&nbsp;end<br>
-                    end
-                </div>
             </div>
 
             <div class="form-group">
@@ -370,6 +358,14 @@
                     <option value="typescript">TypeScript</option>
                     <option value="sql">SQL</option>
                 </select>
+            </div>
+
+
+            <div class="form-group">
+                <label>
+                    <input type="checkbox" checked id="ignoreCommentsCheckbox" style="margin-right: 8px; width: auto">
+                    Ignore comment lines
+                </label>
             </div>
 
             <div class="controls">
@@ -441,6 +437,36 @@
                 this.setupEventListeners();
             }
 
+
+            isCommentLine(line) {
+                const trimmed = line.trim();
+                if (this.language === 'ruby' || this.language === 'python') return trimmed.startsWith('#');
+                if (this.language === 'javascript' || this.language === 'typescript' || this.language === 'cpp' || this.language === 'java') return trimmed.startsWith('//');
+                return false;
+            }
+
+            shouldSkipChar(index) {
+                const span = this.codeDisplay.querySelector(`.char[data-index="${index}"]`);
+                return span?.dataset.skip === "true";
+            }
+
+            preprocessSkipMap() {
+                const lines = this.codeText.split('\n');
+                let index = 0;
+                this.skipIndexes = new Set();
+
+                for (const line of lines) {
+                    const isComment = this.ignoreComments && this.isCommentLine(line);
+                    for (let i = 0; i < line.length; i++) {
+                        if (isComment) this.skipIndexes.add(index);
+                        index++;
+                    }
+                    // include newline character
+                    index++;
+                }
+            }
+
+
             initializeElements() {
                 this.codeInput = document.getElementById('codeInput');
                 this.languageSelect = document.getElementById('languageSelect');
@@ -495,6 +521,8 @@
                 }
 
                 this.codeText = code;
+                this.ignoreComments = document.getElementById('ignoreCommentsCheckbox').checked;
+                this.preprocessSkipMap();
                 this.language = this.languageSelect.value;
                 this.currentIndex = 0;
                 this.errors = 0;
@@ -548,18 +576,14 @@
                 const chars = this.codeText.split('');
                 this.codeDisplay.innerHTML = chars.map((char, index) => {
                     let className = 'char';
-                    if (index === this.currentIndex) {
-                        className += ' current';
-                    } else if (index < this.currentIndex) {
-                        className += ' correct';
-                    }
-
+                    if (index === this.currentIndex) className += ' current';
+                    else if (index < this.currentIndex) className += ' correct';
+                    const isSkip = this.skipIndexes.has(index);
                     const displayChar = char === ' ' ? '&nbsp;' :
                         char === '\n' ? '<br>' :
                             char === '\t' ? '&nbsp;&nbsp;&nbsp;&nbsp;' :
                                 this.escapeHtml(char);
-
-                    return `<span class="${className}" data-index="${index}">${displayChar}</span>`;
+                    return `<span class="${className}" data-index="${index}" data-skip="${isSkip}">${displayChar}</span>`;
                 }).join('');
 
                 // Scroll current character into view
@@ -572,6 +596,7 @@
             handleInput(e) {
                 if (!this.isActive) return;
 
+                while (this.shouldSkipChar(this.currentIndex)) this.currentIndex++;
                 const inputChar = e.target.value.slice(-1);
                 const expectedChar = this.codeText[this.currentIndex];
 
@@ -593,16 +618,15 @@
                 e.target.value = '';
             }
 
-
             handleKeyDown(e) {
                 if (!this.isActive) return;
 
+                // Handle special keys
                 if (e.key === 'Enter') {
                     e.preventDefault();
                     const expectedChar = this.codeText[this.currentIndex];
                     if (expectedChar === '\n') {
                         this.currentIndex++;
-
                         // Detectar indentación esperada después del Enter
                         let indentation = '';
                         while (
@@ -617,7 +641,6 @@
                         for (let i = 0; i < indentation.length; i++) {
                             this.updateCharacterDisplay();
                         }
-
                         this.updateCharacterDisplay();
                         this.updateStats();
 
@@ -630,13 +653,13 @@
                         this.updateStats();
                     }
                 } else if (e.key === 'Tab') {
-                    // (Ya manejado correctamente)
                     e.preventDefault();
                     const expectedChar = this.codeText[this.currentIndex];
                     if (expectedChar === '\t') {
                         this.currentIndex++;
                         this.updateCharacterDisplay();
                         this.updateStats();
+
                         if (this.currentIndex >= this.codeText.length) {
                             this.completePractice();
                         }
@@ -647,8 +670,6 @@
                     }
                 }
             }
-
-
 
             updateCharacterDisplay() {
                 const chars = this.codeDisplay.querySelectorAll('.char');
