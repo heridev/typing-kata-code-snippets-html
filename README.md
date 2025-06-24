@@ -4,6 +4,8 @@ This is a quick prototype code typing practice tool designed to help developers 
 
 It simulates the experience of a code editor, with syntax highlighting and indentation support, and optionally skips comment lines to focus on writing meaningful logic.
 
+[Demo on Replit](https://b71088f3-7ad5-4757-ac5c-c16976bce708-00-6oa7wbfnmhpt.riker.replit.dev/)
+
 ![image](https://github.com/user-attachments/assets/0f69a238-f32d-4486-a10c-745364b5649b)
 ![image](https://github.com/user-attachments/assets/2e7e9d7f-e74a-4783-908b-640a096a0fda)
 
