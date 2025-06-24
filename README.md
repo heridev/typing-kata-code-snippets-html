@@ -1,8 +1,11 @@
 # ⌨️ Code Typing Practice Tool
 
-This is an in-browser code typing practice tool designed to help developers improve their speed, accuracy, and fluency when typing real code.
+This is a quick prototype code typing practice tool designed to help developers improve their speed, accuracy, and fluency when typing real code.
 
 It simulates the experience of a code editor, with syntax highlighting and indentation support, and optionally skips comment lines to focus on writing meaningful logic.
+
+![image](https://github.com/user-attachments/assets/0f69a238-f32d-4486-a10c-745364b5649b)
+![image](https://github.com/user-attachments/assets/2e7e9d7f-e74a-4783-908b-640a096a0fda)
 
 ## 🚀 Features
 
