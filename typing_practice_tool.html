@@ -440,9 +440,7 @@
 
             isCommentLine(line) {
                 const trimmed = line.trim();
-                if (this.language === 'ruby' || this.language === 'python') return trimmed.startsWith('#');
-                if (this.language === 'javascript' || this.language === 'typescript' || this.language === 'cpp' || this.language === 'java') return trimmed.startsWith('//');
-                return false;
+                return trimmed.startsWith('#') || trimmed.startsWith('/') || trimmed.startsWith('//') || false;
             }
 
             shouldSkipChar(index) {
@@ -455,17 +453,31 @@
                 let index = 0;
                 this.skipIndexes = new Set();
 
+                console.log("lines", lines)
                 for (const line of lines) {
                     const isComment = this.ignoreComments && this.isCommentLine(line);
-                    for (let i = 0; i < line.length; i++) {
-                        if (isComment) this.skipIndexes.add(index);
+
+                    // Skip all characters in comment lines (including the newline)
+                    if (isComment) {
+                        // Skip the line content
+                        for (let i = 0; i < line.length; i++) {
+                            this.skipIndexes.add(index);
+                            index++;
+                        }
+                        // Skip the newline character
+                        this.skipIndexes.add(index);
                         index++;
+                    } else {
+                        // For non-comment lines, just advance the index
+                        index += line.length + 1; // +1 for the newline
                     }
-                    // include newline character
-                    index++;
                 }
+                console.log(this.skipIndexes, 'this.skipIndexes')
             }
 
+            isSkipIndex(index) {
+                return this.skipIndexes.has(index);
+            }
 
             initializeElements() {
                 this.codeInput = document.getElementById('codeInput');
@@ -525,6 +537,9 @@
                 this.preprocessSkipMap();
                 this.language = this.languageSelect.value;
                 this.currentIndex = 0;
+                while (this.isSkipIndex(this.currentIndex)) {
+                    this.currentIndex++;
+                }
                 this.errors = 0;
                 this.isActive = true;
                 this.startTime = Date.now();
@@ -540,7 +555,7 @@
                 this.typingInput.focus();
                 this.updateStats();
 
-                console.log('🚀 Practice started!');
+                console.log('Practice started!');
             }
 
             stopPractice() {
@@ -569,11 +584,12 @@
                 this.resetBtn.disabled = true;
 
                 this.updateStats();
-                console.log('🔄 Practice reset');
+                console.log('Practice reset');
             }
 
             renderCode() {
                 const chars = this.codeText.split('');
+                console.log('chars', chars)
                 this.codeDisplay.innerHTML = chars.map((char, index) => {
                     let className = 'char';
                     if (index === this.currentIndex) className += ' current';
@@ -596,12 +612,17 @@
             handleInput(e) {
                 if (!this.isActive) return;
 
-                while (this.shouldSkipChar(this.currentIndex)) this.currentIndex++;
+                // Advance past any skipped characters
+                while (this.shouldSkipChar(this.currentIndex)) {
+                    this.currentIndex++;
+                }
+
                 const inputChar = e.target.value.slice(-1);
                 const expectedChar = this.codeText[this.currentIndex];
 
                 if (inputChar === expectedChar) {
                     this.currentIndex++;
+                    this.advanceToNextNonSkipped();
                     this.updateCharacterDisplay();
                     this.updateStats();
 
@@ -625,9 +646,10 @@
                 if (e.key === 'Enter') {
                     e.preventDefault();
                     const expectedChar = this.codeText[this.currentIndex];
+                    console.log('expected', expectedChar)
                     if (expectedChar === '\n') {
                         this.currentIndex++;
-                        // Detectar indentación esperada después del Enter
+                        // detect indentation automatically after Enter
                         let indentation = '';
                         while (
                             this.codeText[this.currentIndex] === ' ' ||
@@ -637,7 +659,8 @@
                             this.currentIndex++;
                         }
 
-                        // Simular haber "tecleado" la indentación
+                        this.advanceToNextNonSkipped();
+                        // Simulate typing spaces
                         for (let i = 0; i < indentation.length; i++) {
                             this.updateCharacterDisplay();
                         }
@@ -657,6 +680,7 @@
                     const expectedChar = this.codeText[this.currentIndex];
                     if (expectedChar === '\t') {
                         this.currentIndex++;
+                        this.advanceToNextNonSkipped();
                         this.updateCharacterDisplay();
                         this.updateStats();
 
@@ -673,22 +697,29 @@
 
             updateCharacterDisplay() {
                 const chars = this.codeDisplay.querySelectorAll('.char');
+                // Remove .current from all chars
+                chars.forEach(char => char.classList.remove('current'));
 
-                // Update previous character
+                // Mark all skipped chars between previous and current as just 'char'
+                // Mark previous non-skipped as 'correct'
                 if (this.currentIndex > 0) {
-                    const prevChar = chars[this.currentIndex - 1];
-                    if (prevChar) {
-                        prevChar.className = 'char correct';
+                    let prev = this.currentIndex - 1;
+                    while (prev >= 0 && this.shouldSkipChar(prev)) {
+                        chars[prev].className = 'char';
+                        prev--;
                     }
+                    if (prev >= 0) chars[prev].className = 'char correct';
                 }
 
-                // Update current character
-                if (this.currentIndex < chars.length) {
-                    const currentChar = chars[this.currentIndex];
-                    if (currentChar) {
-                        currentChar.className = 'char current';
-                        currentChar.scrollIntoView({ behavior: 'smooth', block: 'center' });
-                    }
+                // Find and set .current on the next non-skipped char
+                let nextIndex = this.currentIndex;
+                while (nextIndex < chars.length && this.shouldSkipChar(nextIndex)) {
+                    chars[nextIndex].className = 'char';
+                    nextIndex++;
+                }
+                if (nextIndex < chars.length) {
+                    chars[nextIndex].className = 'char current';
+                    chars[nextIndex].scrollIntoView({ behavior: 'smooth', block: 'center' });
                 }
             }
 
@@ -755,6 +786,12 @@
                 const div = document.createElement('div');
                 div.textContent = text;
                 return div.innerHTML;
+            }
+
+            advanceToNextNonSkipped() {
+                while (this.isSkipIndex(this.currentIndex) && this.currentIndex < this.codeText.length) {
+                    this.currentIndex++;
+                }
             }
         }
 
