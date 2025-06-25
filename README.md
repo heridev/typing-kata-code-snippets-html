@@ -4,7 +4,7 @@ This is a quick prototype code typing practice tool designed to help developers 
 
 It simulates the experience of a code editor, with syntax highlighting and indentation support, and optionally skips comment lines to focus on writing meaningful logic.
 
-[Demo on Replit](https://b71088f3-7ad5-4757-ac5c-c16976bce708-00-6oa7wbfnmhpt.riker.replit.dev/)
+[Demo](http://kata.elh.mx)
 
 ![image](https://github.com/user-attachments/assets/0f69a238-f32d-4486-a10c-745364b5649b)
 ![image](https://github.com/user-attachments/assets/2e7e9d7f-e74a-4783-908b-640a096a0fda)
@@ -20,7 +20,7 @@ It simulates the experience of a code editor, with syntax highlighting and inden
 
 ## 🛠 How to Use
 
-1. Open the `typing_practice_tool.html` file in your browser.
+1. Open the `index.html` file in your browser.
 2. Paste your code into the textarea.
 3. Select the language for syntax highlighting.
 4. (Optional) Check **Ignore comment lines** if you want to skip typing comments.
@@ -34,7 +34,7 @@ Many typing tools focus on plain text. This project focuses on improving muscle 
 
 ## 📁 File
 
-- `typing_practice_tool.html` – Full self-contained tool with embedded JS/CSS and syntax highlighter.
+- `index.html` – Full self-contained tool with embedded JS/CSS and syntax highlighter.
 
 ## 📜 License
 
